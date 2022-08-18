@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteShellInject", "RemoteShellInject\RemoteShellInject.csproj", "{B9232FBB-5B1F-45B7-8386-7D2DDD4E171B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B9232FBB-5B1F-45B7-8386-7D2DDD4E171B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9232FBB-5B1F-45B7-8386-7D2DDD4E171B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9232FBB-5B1F-45B7-8386-7D2DDD4E171B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9232FBB-5B1F-45B7-8386-7D2DDD4E171B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9090E0BB-D76E-43BC-978B-67E04671E98B}
+	EndGlobalSection
+EndGlobal
