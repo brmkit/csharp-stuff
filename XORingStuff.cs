@@ -49,7 +49,7 @@ namespace XORingStuff
         static byte[] XorCrypt(byte[] bytecode)
         {
             byte[] xoredcode = new byte[bytecode.Length];
-            for (int i = 1; i < bytecode.Length; i++)
+            for (int i = 0; i < bytecode.Length; i++)
             {
                 xoredcode[i] = (byte)(bytecode[i] ^ key[i % key.Length]);
             }
@@ -73,11 +73,11 @@ namespace XORingStuff
             StringBuilder printcode = new StringBuilder(shellcode.Length * 2);
             for (int i = 0; i < shellcode.Length; i++)
             {
-                if (i % 20 == 0) printcode.Append("\n");
+                if ((i+1) % 15 == 0) printcode.AppendFormat("0x{0:x2},\n", shellcode[i]);
                 else if (i == (shellcode.Length - 1)) printcode.AppendFormat("0x{0:x2}", shellcode[i]);
                 else printcode.AppendFormat("0x{0:x2}, ", shellcode[i]);
             }
-            Console.WriteLine($"byte[] {funName} = new byte[{shellcode.Length}] {{ {printcode} }};\n");
+            Console.WriteLine($"byte[] {funName} = new byte[{shellcode.Length}] {{\n{printcode} }};\n");
         }
     }
 }
