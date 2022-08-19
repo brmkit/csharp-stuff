@@ -35,16 +35,15 @@ namespace XORingStuff
             0x77,0x69,0x6e,0x64,0x6f,0x77,0x73,0x5c,0x73,0x79,0x73,0x74,0x65,0x6d,0x33,
             0x32,0x5c,0x63,0x61,0x6c,0x63,0x2e,0x65,0x78,0x65,0x00 };
 
-            if (args[0] == "save")
+            if (args.Length > 0 && args[0] == "save" )
             {
                 File.WriteAllBytes("encrypted.txt", XorCrypt(shellcode));
                 Console.WriteLine("Saved to encrypted.txt");
                 return;
             }
-
             printShellcode(XorCrypt(shellcode));
             printShellcode(XorCrypt("notepad"), "process");
-
+            
         }
 
         static byte[] XorCrypt(byte[] bytecode)
